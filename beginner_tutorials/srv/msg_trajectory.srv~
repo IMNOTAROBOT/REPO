@@ -1,0 +1,4 @@
+string group
+moveit_msgs/RobotTrajectory trajectory
+---
+int status

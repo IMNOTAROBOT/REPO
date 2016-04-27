@@ -1,0 +1,2 @@
+moveit_msgs/RobotState state_
+moveit_msgs/RobotTrajectory traj_

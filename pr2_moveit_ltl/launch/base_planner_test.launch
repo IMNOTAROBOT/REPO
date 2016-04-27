@@ -1,0 +1,13 @@
+<launch>
+
+  <include file="$(find pr2_moveit_config_plus)/launch/demo.launch"/>
+  <node name="pr2_base_controller_srv" pkg="pr2_moveit_ltl" type="pr2_base_controller_srv" respawn="false" output="screen">
+  </node>
+  <node name="automata_generator" pkg="pr2_moveit_ltl" type="automata_generator" respawn="false" output="screen">
+  </node>
+  <node name="plan_generator" pkg="pr2_moveit_ltl" type="plan_generator" respawn="false" output="screen">
+  </node>
+  <node name="planner_client" pkg="pr2_moveit_ltl" type="planner_client" respawn="false" output="screen">
+  </node>
+
+</launch>

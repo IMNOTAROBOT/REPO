@@ -1,0 +1,9 @@
+<launch>
+  <include file="$(find pr2_moveit_config_plus)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
+  </include>
+
+  <node name="state_display" pkg="pr2_moveit_ltl" type="state_display" respawn="false" output="screen">
+    <rosparam command="load" file="$(find pr2_moveit_config_plus)/config/kinematics.yaml"/>
+  </node>
+</launch>

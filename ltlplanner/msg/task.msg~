@@ -1,0 +1,7 @@
+int64 id
+bool routine
+int64 id_routine
+int64 DOF
+string name_mg
+geometry_msgs/Twist[] twists
+float64 dtimes

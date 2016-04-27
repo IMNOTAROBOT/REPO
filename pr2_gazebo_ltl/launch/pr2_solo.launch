@@ -1,0 +1,5 @@
+<launch>
+  <!-- start pr2 robot -->
+  <include file="$(find pr2_gazebo)/launch/pr2.launch"/>
+
+</launch>

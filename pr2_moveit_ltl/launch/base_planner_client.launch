@@ -1,0 +1,7 @@
+<launch>
+  <node name="pr2_base_controller_srv" pkg="pr2_moveit_ltl" type="pr2_base_controller_srv" respawn="false" output="screen">
+  </node>
+  <node name="pr2_base_controller_client" pkg="pr2_moveit_ltl" type="pr2_base_controller_client" respawn="false" output="screen">
+  </node>
+
+</launch>
