@@ -1,5 +1,0 @@
-automaton automata
-int64 initial
-int64 final
----
-int64[] plan

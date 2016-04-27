@@ -1,8 +1,0 @@
-<launch>
-
-  <include file="$(find pr2_moveit_config_plus)/launch/demo.launch"/>
-
-  <node name="move_base_planner" pkg="pr2_moveit_ltl" type="move_base_planner" respawn="false" output="screen">
-  </node>
-
-</launch>

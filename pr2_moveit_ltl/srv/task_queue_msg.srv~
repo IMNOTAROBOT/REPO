@@ -1,5 +1,0 @@
-string name
-automaton automata
----
-int64 size
-pr2_moveit_ltl/proposition[] propositions

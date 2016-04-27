@@ -1,6 +1,0 @@
-string name_a
-string alias_a
-int64 id
-string name_mg
-int64 DOF_mg
-pr2_moveit_ltl/limit[] limits
