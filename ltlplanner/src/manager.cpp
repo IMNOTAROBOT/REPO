@@ -178,7 +178,6 @@ class Manager{
 				std::vector<ltlplanner::taskPtr> tasks;
 				bool res = lookforpath(auto_, tasks);
 				if(res){
-					std::cout << "Casi llego" << std::endl;
 					plan_.tasks.clear();
 					for(std::vector<ltlplanner::taskPtr>::const_iterator it_t = tasks.begin(); it_t != tasks.end(); ++it_t){
 						ltlplanner::taskPtr aux = *it_t;
@@ -244,7 +243,7 @@ class Manager{
 			unSettledNodes.push_back(initialP);
 			
 			while(unSettledNodes.size() > 0){
-				std::cout << "En loop: " << unSettledNodes.size() << std::endl;
+				
 				ltlplanner::nodePtr min(new ltlplanner::node);
 				bool minfind = getMinimum(unSettledNodes, min, distance);
 				settledNodes.push_back(min);
@@ -254,7 +253,7 @@ class Manager{
 			std::vector<ltlplanner::nodePtr> path;
 			bool pathmade = getPath(endP, path, predecessors, states);
 			
-			std::cout << "Estoy aqui" << pathmade <<std::endl;
+			
 			if(pathmade){
 				generatePlanMsg(path, path_res, transitions);
 				res = true;
@@ -268,8 +267,6 @@ class Manager{
 			
 			std::vector<ltlplanner::nodePtr> adjacentNodes;
 			getNeighbors(node, adjacentNodes, transitions, states, settledNodes);
-			
-			std::cout << "Vecinos" << adjacentNodes.size() << " " << node->id <<std::endl;
 			
 			for(std::vector<ltlplanner::nodePtr>::const_iterator it = adjacentNodes.begin(); it != adjacentNodes.end(); ++it){
 				ltlplanner::nodePtr aux = *it;
@@ -462,7 +459,6 @@ class Manager{
 				//predecessorsGet(step->id, aux, predecessors, states);
 				step = aux;
 				pathaux.push_back(step);
-				std::cout << "Ids: "<< step->id <<std::endl;
 			}
 			reverse(pathaux, path);
 			
@@ -489,32 +485,29 @@ class Manager{
 			for(std::vector<ltlplanner::nodePtr>::const_iterator it = pathaux.end()-1; it >= pathaux.begin(); --it){
 				ltlplanner::nodePtr aux = *it;
 				path.push_back(aux);
-				std::cout << "Ids reverse: "<< aux->id <<std::endl;
 			}
 		}
 		
 		void generatePlanMsg(std::vector<ltlplanner::nodePtr> &path, std::vector<ltlplanner::taskPtr> &plan, std::vector<ltlplanner::edgePtr> &transitions){
+			int k = 0;
 			for(std::vector<ltlplanner::nodePtr>::const_iterator it = path.begin(); it != (path.end() - 1); ++it){
 				ltlplanner::nodePtr aux = *it;
 				ltlplanner::nodePtr aux_next = *(it + 1);
 				
 				ltlplanner::edgePtr trans (new ltlplanner::edge);
 				bool trans_bool = getTransition(aux, aux_next, trans, transitions);	
-				int k = 0;
 				
 				if(trans_bool){
-					std::cout << "Entro aqui loop: "<< k <<std::endl;
 					ltlplanner::taskPtr prop(new ltlplanner::task);
     			prop->id = k;
   				prop->routine= trans->routine;
   				prop->name_mg = trans->group_name;
   				prop->trans_alphabet = trans->trans_alphabet;
   				prop->dtimes = trans->dtimes;
-  				std::cout << "paso por aqui despues de  "<< k <<std::endl;
   				plan.push_back(prop);
-  				std::cout << "hago push "<< k <<std::endl;
   				k++;
 				}
+				
 			}
 		}
 		

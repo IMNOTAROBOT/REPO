@@ -2,6 +2,8 @@
 #include <sstream>
 #include <vector>
 #include <cstdlib>
+#include <stdlib.h> 
+//#include <random_numbers/random_numbers.h>
 
 #include "ltlplanner/automaton.h"
 #include "ltlplanner/region.h"
@@ -18,17 +20,26 @@
 #include "ltlplanner/goal_msg.h"
 #include "ltlplanner/plan_msg.h"
 
+//Planear
+#include <ltlplanner/lowplanAction.h>
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/terminal_state.h>
+#include <moveit_msgs/RobotTrajectory.h>
+
 class Planner{
 	private:
 		ltlplanner::goal goal_;
 		std::vector<ltlplanner::region> regions_;
 		std::vector<ltlplanner::automaton> automatas_; 
 		ltlplanner::plan plan_;
+		bool validplan;
+		ltlplanner::task actTask_;
 		
 		bool goalChange;
 	public:
 		Planner(){
 			goalChange = false;
+			validplan = false;
 			plan_.id = -1;
 		}
 		
@@ -41,6 +52,7 @@ class Planner{
 				std::cout << "Nuevo Goal" << std::endl;
 				goal_ = msg->goal;
 				goalChange = true;
+				validplan = false;
 				printGoal();
 			}	
 		}
@@ -55,6 +67,7 @@ class Planner{
 			if(plan_.id != msg->plan.id){
 				std::cout << "Nuevo plan" << std::endl;
 				plan_ = msg->plan;
+				validplan = true;
 				printPlan();
 			}	
 		}
@@ -164,12 +177,79 @@ class Planner{
 			}	
 		}
 		
-		bool plan(){
+		void setTaskPoint(ltlplanner::taskPtr &task, std::vector<double> &points){
+			srand(time(0));
+			ltlplanner::region reg = getRegion(task->trans_alphabet.at(0));
+			for(std::vector<ltlplanner::limit>::const_iterator it = reg.limits.begin(); it != reg.limits.end(); ++it){
+				ltlplanner::limit lim = *it;
+				double value = lim.min + (((double)rand()/RAND_MAX)*(lim.min - lim.max));
+				points.push_back(value);
+			}
+		}
+		
+		//LLama accion para plan por punto
+		bool planforPoint(ltlplanner::taskPtr &task, moveit_msgs::RobotTrajectory &traj){
+			bool res = false;
+			std::vector<double> points;
+			setTaskPoint(task, points);
+			actionlib::SimpleActionClient<ltlplanner::lowplanAction> ac("lowplan_srv", true);
 			
+			ROS_INFO("Waiting for action server to start.");
+ 			ac.waitForServer();
+			ROS_INFO("Action server started, sending goal.");
+  
+	  	ltlplanner::lowplanGoal goal;
+ 	 		goal.id = task->id;
+ 	 		goal.group_name = task->name_mg;
+ 	 		
+ 	 		for(std::vector<double>::const_iterator it = points.begin(); it != points.end(); ++it){
+				double value = *it;
+				goal.values.push_back(value);
+			}
+ 	 		
+	  	ac.sendGoal(goal);
+
+			while(ac.getState() != actionlib::SimpleClientGoalState::SUCCEEDED && ros::ok()){
+    		usleep(50000);
+  		}
+  		
+  		if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
+  			res = true;
+  			ltlplanner::lowplanResultConstPtr res = ac.getResult();
+  			traj = res->trajectory;
+  		}
+			return res;
+		}
+		
+		//Convertir en hilo independiente
+		void plan(){
+			//Checa que el plan que se tiene sea valido
+			while(validplan){
+				for(std::vector<ltlplanner::task>::const_iterator it = plan_.tasks.begin(); it != plan_.tasks.end(); ++it){
+					ltlplanner::task aux = *it;
+					ltlplanner::taskPtr poin(new ltlplanner::task);
+					poin->id = aux.id;
+					poin->routine = aux.routine;
+					poin->id_routine = aux.id_routine;
+					poin->name_mg = aux.name_mg;
+					poin->trans_alphabet = aux.trans_alphabet;
+					poin->dtimes = aux.dtimes;
+ 
+					std::vector<double> points;
+					setTaskPoint(poin, points);
+					moveit_msgs::RobotTrajectory traj;
+				
+					bool succ = planforPoint(poin, traj);
+				
+					if(succ){
+						//Mandar al controlador
+					}else{
+						//Hacer algo
+					}
+				}
+			}		
 		}
 };
-
-
 
 int main(int argc, char **argv)
 {

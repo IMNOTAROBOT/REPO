@@ -52,6 +52,9 @@ add_service_files(
 
 add_action_files(
   DIRECTORY action
+  FILES lowplan.action
+  lowcontrol.action
+  lowstep.action
 )
 
 generate_messages(
@@ -109,6 +112,26 @@ add_executable(planner_manager src/planner_manager.cpp)
 target_link_libraries(planner_manager ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(planner_manager ltlplanner_generate_messages_cpp)
 install(TARGETS planner_manager DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(lowplanner_srv src/lowplanner_srv.cpp)
+target_link_libraries(lowplanner_srv ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(lowplanner_srv ${ltlplanner_EXPORTED_TARGETS})
+install(TARGETS lowplanner_srv DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(lowcontroller_srv src/lowcontroller_srv.cpp)
+target_link_libraries(lowcontroller_srv ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(lowcontroller_srv ${ltlplanner_EXPORTED_TARGETS})
+install(TARGETS lowcontroller_srv DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(lowcontroller_angle_srv src/lowcontroller_angle_srv.cpp)
+target_link_libraries(lowcontroller_angle_srv ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(lowcontroller_angle_srv ${ltlplanner_EXPORTED_TARGETS})
+install(TARGETS lowcontroller_angle_srv DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(lowcontroller_fwd_srv src/lowcontroller_fwd_srv.cpp)
+target_link_libraries(lowcontroller_fwd_srv ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(lowcontroller_fwd_srv ${ltlplanner_EXPORTED_TARGETS})
+install(TARGETS lowcontroller_fwd_srv DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 

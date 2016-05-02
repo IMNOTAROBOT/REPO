@@ -1,0 +1,8 @@
+int64 id
+string group_name
+float64[] values
+---
+bool done
+moveit_msgs/RobotTrajectory trajectory
+---
+bool done

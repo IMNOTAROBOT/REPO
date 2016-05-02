@@ -1,0 +1,7 @@
+int64 id
+string group_name
+moveit_msgs/RobotTrajectory trajectory
+---
+bool done
+---
+bool done
