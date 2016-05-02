@@ -1,43 +1,132 @@
 #include "ros/ros.h"
 #include <sstream>
-#include "ltlplanner/goal.h"
-#include "ltlplanner/goal_msg.h"
+#include <vector>
+#include "ltlplanner/automaton.h"
+#include "ltlplanner/automaton_msg.h"
+#include "ltlplanner/region.h"
+#include "ltlplanner/limit.h"
+#include "ltlplanner/region_msg.h"
+#include "ltlplanner/state.h"
+#include "ltlplanner/transition.h"
 
-class Goal{
+class Automaton{
 	private:
 		ros::NodeHandle nh_;
-		ros::Publisher pub_goal;
-		ltlplanner::goal goal_;
+		ros::Publisher pub_auto;
+		std::vector<ltlplanner::automaton> automatas_;
 		int index;
 		
 	public:
-		Goal(ros::NodeHandle &nh){
+		Automaton(ros::NodeHandle &nh){
 			nh_ = nh;
-			pub_goal = nh_.advertise<ltlplanner::goal_msg>("public/automata", 100);
+			pub_auto = nh_.advertise<ltlplanner::automaton_msg>("public/automata", 100);
 			index = 1;
-			setGoal();
+			setAutomata();
+			sleep(10.0);
 		}
 		
-		~Goal(){
+		~Automaton(){
 		
 		}
 		
-		bool setGoal(){
-			goal_.id = index;
-			goal_.goal = "EXAMPLE";
-			goal_.id_automata = 0;
+		bool setAutomata(){
+			ltlplanner::automaton auto_;
+			
+			auto_.name = "Example";
+  		auto_.id = 0;
+  	
+			ltlplanner::state sta0;
+			sta0.name = "Edo0";
+			sta0.id= 0;
+			sta0.is_initial_state = true;
+			sta0.is_acceptance_state = false;
+			sta0.valid_propositions.push_back(0);
+			sta0.valid_propositions.push_back(1);
+			sta0.valid_propositions.push_back(2);
+		
+			ltlplanner::transition trans0_0;
+			trans0_0.name = "Trans edo 0 0";
+			trans0_0.id = 0;
+			trans0_0.initial_state = 0;
+			trans0_0.final_state = 1;
+			trans0_0.value = 2;
+			trans0_0.group_name = "base";
+			trans0_0.trans_alphabet.push_back(1);
+	
+			ltlplanner::transition trans0_1;
+			trans0_1.name = "Trans edo 0 1";
+			trans0_1.id = 1;
+			trans0_1.initial_state = 0;
+			trans0_1.final_state = 0;
+			trans0_1.value = 2;
+			trans0_1.group_name = "base";
+			trans0_1.trans_alphabet.push_back(2);
+			trans0_1.trans_alphabet.push_back(0);
+	
+			sta0.transitions.push_back(trans0_0);
+			sta0.transitions.push_back(trans0_1);
+	
+			ltlplanner::state sta1;
+			sta1.name = "Edo1";
+			sta1.id= 1;
+			sta1.is_initial_state = false;
+			sta1.is_acceptance_state = false;
+			sta1.valid_propositions.push_back(0);
+			sta1.valid_propositions.push_back(1);
+		
+			ltlplanner::transition trans1_0;
+			trans1_0.name = "Trans edo 1 0";
+			trans1_0.id = 10;
+			trans1_0.initial_state = 1;
+			trans1_0.final_state = 2;
+			trans1_0.value = 2;
+			trans1_0.group_name = "base";
+			trans1_0.trans_alphabet.push_back(2);
+		
+			ltlplanner::transition trans1_1;
+			trans1_1.name = "Trans edo 1 1";
+			trans1_1.id = 11;
+			trans1_1.initial_state = 1;
+			trans1_1.final_state = 1;
+			trans1_1.value = 2;
+			trans1_1.group_name = "base";
+			trans1_1.trans_alphabet.push_back(1);
+			trans1_1.trans_alphabet.push_back(0);
+		
+			sta1.transitions.push_back(trans1_0);
+			sta1.transitions.push_back(trans1_1);
+		
+			ltlplanner::state sta2;
+			sta2.name = "Edo2";
+			sta2.id= 2;
+			sta2.is_initial_state = false;
+			sta2.is_acceptance_state = true;
+			sta2.valid_propositions.push_back(2);
+	
+			auto_.states.push_back(sta0);
+			auto_.states.push_back(sta1);
+			auto_.states.push_back(sta2);
+		
+			auto_.initial_state = 0;
+			auto_.acceptance_states.push_back(2);
+		
+			automatas_.push_back(auto_);
 		}
 		
-		bool sendGoal(){
+		bool sendAutomata(){
 			bool res = false;
-			if(ros::ok()){
-				ltlplanner::goal_msg goal_msg;
-				goal_msg.id = index;
-				goal_msg.goal = goal_;
-				pub_goal.publish(goal_msg);
-				index++;
+			while(ros::ok()){
+				sleep(10.0);
+				for(std::vector<ltlplanner::automaton>::const_iterator it = automatas_.begin(); it != automatas_.end(); ++it){
+					sleep(10.0);
+					ltlplanner::automaton aux = *it;
+					ltlplanner::automaton_msg auto_msg;
+					auto_msg.id = index;
+					auto_msg.automata = aux;
+					pub_auto.publish(auto_msg);
+					index++;	
+				}
 				res = true;
-				ros::spinOnce();
 			}
 			return res;
 		}
@@ -46,14 +135,12 @@ class Goal{
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "GOAL_PUBLISHER");
+  ros::init(argc, argv, "AUTOMATA_PUBLISHER_1");
   ros::NodeHandle n;
 
-	Goal goal(n);
+	Automaton auto_(n);
 	
-	if(ros::ok()){
-		bool res = goal.sendGoal();
-		ros::spinOnce();
-	}
+	bool res = auto_.sendAutomata();
+	
   return 0;
 }

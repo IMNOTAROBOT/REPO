@@ -1,0 +1,3 @@
+<launch>
+  <node name="planner_manager" pkg="ltlplanner" type="planner_manager" respawn="false" output="screen"></node>
+</launch>

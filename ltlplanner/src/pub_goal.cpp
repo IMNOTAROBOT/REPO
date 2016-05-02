@@ -13,9 +13,10 @@ class Goal{
 	public:
 		Goal(ros::NodeHandle &nh){
 			nh_ = nh;
-			pub_goal = nh_.advertise<ltlplanner::goal_msg>("public/goal", 100);
+			pub_goal = nh_.advertise<ltlplanner::goal_msg>("/public/goal", 1);
 			index = 1;
 			setGoal();
+			sleep(10.0);
 		}
 		
 		~Goal(){
@@ -30,14 +31,14 @@ class Goal{
 		
 		bool sendGoal(){
 			bool res = false;
-			if(ros::ok()){
+			while(ros::ok()){
+				sleep(10.0);
 				ltlplanner::goal_msg goal_msg;
 				goal_msg.id = index;
 				goal_msg.goal = goal_;
 				pub_goal.publish(goal_msg);
 				index++;
 				res = true;
-				ros::spinOnce();
 			}
 			return res;
 		}
@@ -51,11 +52,7 @@ int main(int argc, char **argv)
 
 	Goal goal(n);
 	
-	if(ros::ok()){
-		bool res = goal.sendGoal();
-		ros::spinOnce();
-	}
+	bool res = goal.sendGoal();
 	
-	ros::spin();
   return 0;
 }

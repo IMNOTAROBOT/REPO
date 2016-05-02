@@ -2,6 +2,7 @@
 #include <sstream>
 #include <vector>
 #include "ltlplanner/region.h"
+#include "ltlplanner/limit.h"
 #include "ltlplanner/region_msg.h"
 
 class Region{
@@ -15,8 +16,9 @@ class Region{
 		Region(ros::NodeHandle &nh){
 			nh_ = nh;
 			pub_region = nh_.advertise<ltlplanner::region_msg>("public/region", 100);
-			index = 1;
+			index = 0;
 			setRegions();
+			sleep(10.0);
 		}
 		
 		~Region(){
@@ -100,15 +102,16 @@ class Region{
 		
 		bool sendRegions(){
 			bool res = false;
-			if(ros::ok()){
+			while(ros::ok()){
+				sleep(10.0);
 				for(std::vector<ltlplanner::region>::const_iterator it = regions_.begin(); it != regions_.end(); ++it){
+					sleep(10.0);
 					ltlplanner::region aux = *it;
 					ltlplanner::region_msg region_msg;
 					region_msg.id = index;
 					region_msg.region = aux;
 					pub_region.publish(region_msg);
 					index++;
-					ros::spinOnce();
 				}
 				res = true;
 			}
@@ -123,9 +126,6 @@ int main(int argc, char **argv)
   ros::NodeHandle n;
 
 	Region region(n);
-	
-	if(ros::ok()){
-		bool res = region.sendRegions();
-	}
+	bool res = region.sendRegions();
   return 0;
 }

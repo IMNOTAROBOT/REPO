@@ -42,6 +42,8 @@ add_message_files(
   plan.msg
   task.msg
   map_state.msg
+  edge.msg
+  node.msg
 )
 
 add_service_files(
@@ -93,6 +95,20 @@ target_link_libraries(pub_region ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(pub_region ltlplanner_generate_messages_cpp)
 install(TARGETS pub_region DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+add_executable(pub_automaton src/pub_automaton.cpp)
+target_link_libraries(pub_automaton ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(pub_automaton ltlplanner_generate_messages_cpp)
+install(TARGETS pub_automaton DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(pub_automaton_2 src/pub_automaton_2.cpp)
+target_link_libraries(pub_automaton_2 ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(pub_automaton_2 ltlplanner_generate_messages_cpp)
+install(TARGETS pub_automaton_2 DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(planner_manager src/planner_manager.cpp)
+target_link_libraries(planner_manager ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(planner_manager ltlplanner_generate_messages_cpp)
+install(TARGETS planner_manager DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 

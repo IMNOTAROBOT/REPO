@@ -1,0 +1,5 @@
+<launch>
+  <node name="pub_region" pkg="ltlplanner" type="pub_region" respawn="false" output="screen"></node>
+  <node name="pub_automaton" pkg="ltlplanner" type="pub_automaton" respawn="false" output="screen"></node>
+  <node name="pub_goal" pkg="ltlplanner" type="pub_goal" respawn="false" output="screen"></node>
+</launch>
