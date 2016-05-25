@@ -177,6 +177,11 @@ class Planner{
 			}	
 		}
 		
+		
+		/*
+		 * Metodo que planea en alto nivel
+		 * Nota: Volver un RRT 
+		 */
 		void setTaskPoint(ltlplanner::taskPtr &task, std::vector<double> &points){
 			srand(time(0));
 			ltlplanner::region reg = getRegion(task->trans_alphabet.at(0));

@@ -13,6 +13,7 @@ find_package(catkin REQUIRED
              geometric_shapes
              geometry_msgs
              move_base_msgs
+             move_base
              actionlib
              pr2_controllers_msgs
              control_msgs
@@ -22,7 +23,7 @@ find_package(catkin REQUIRED
   					 moveit_msgs
   					 tf
   					 actionlib_msgs
-  					 move_base_msgs
+  					 gazebo_msgs
 )
 
 find_package(Boost REQUIRED system filesystem date_time thread)
@@ -54,7 +55,7 @@ add_action_files(
   DIRECTORY action
   FILES lowplan.action
   lowcontrol.action
-  lowstep.action
+  lowcontrol_step.action
 )
 
 generate_messages(
@@ -123,15 +124,19 @@ target_link_libraries(lowcontroller_srv ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(lowcontroller_srv ${ltlplanner_EXPORTED_TARGETS})
 install(TARGETS lowcontroller_srv DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-add_executable(lowcontroller_angle_srv src/lowcontroller_angle_srv.cpp)
-target_link_libraries(lowcontroller_angle_srv ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-add_dependencies(lowcontroller_angle_srv ${ltlplanner_EXPORTED_TARGETS})
-install(TARGETS lowcontroller_angle_srv DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+add_executable(lowcontroller_client src/lowcontroller_client.cpp)
+target_link_libraries(lowcontroller_client ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(lowcontroller_client ${ltlplanner_EXPORTED_TARGETS})
+install(TARGETS lowcontroller_client DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-add_executable(lowcontroller_fwd_srv src/lowcontroller_fwd_srv.cpp)
-target_link_libraries(lowcontroller_fwd_srv ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-add_dependencies(lowcontroller_fwd_srv ${ltlplanner_EXPORTED_TARGETS})
-install(TARGETS lowcontroller_fwd_srv DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+add_executable(lowplanner_client src/lowplanner_client.cpp)
+target_link_libraries(lowplanner_client ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(lowplanner_client ${ltlplanner_EXPORTED_TARGETS})
+install(TARGETS lowplanner_client DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(pose_publisher src/pose_publisher.cpp)
+target_link_libraries(pose_publisher ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+install(TARGETS pose_publisher DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 

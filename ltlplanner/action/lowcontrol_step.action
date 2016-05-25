@@ -1,0 +1,10 @@
+#Goal definition
+geometry_msgs/PoseStamped goalPose
+---
+#Result definition
+bool done
+geometry_msgs/PoseStamped resultPose
+---
+#feedback
+bool done
+geometry_msgs/PoseStamped feedPose
