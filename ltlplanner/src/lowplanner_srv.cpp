@@ -22,7 +22,6 @@
 #include <ltlplanner/lowcontrol_stepAction.h>
 #include <actionlib/client/simple_action_client.h>
 
-#include <gazebo_msgs/ModelState.h>
 /*
 * Planeador de bajo nivel que utiliza moveit para planear
 */
@@ -37,7 +36,6 @@ protected:
   ros::NodeHandle client;
   actionlib::SimpleActionServer<ltlplanner::lowplanAction> as_; 
   std::string action_name_;
-  ros::Publisher display_publisher;
   
   ltlplanner::lowplanFeedback feedback_;
   ltlplanner::lowplanResult result_;
@@ -45,7 +43,7 @@ protected:
   ros::Subscriber sub_pose;
   geometry_msgs::PoseStamped actPose_;
 
-	//LowControlClient* ac_;
+	LowControlClient* ac_;
 	moveit::planning_interface::MoveGroup* group;
 	moveit::planning_interface::PlanningSceneInterface* planning_scene_interface;  
 	std::vector<double> current_state;
@@ -60,9 +58,7 @@ public:
     current_state.push_back(0.0);
     current_state.push_back(0.0);
   	sub_pose = nh_.subscribe("/ltlplanner/PR2pose", 1000, &LowPlanner::getPR2pose, this);
-  	display_publisher = nh_.advertise<gazebo_msgs::ModelState>("/gazebo/set_model_state", 1, true);
-  	//ac_ = new LowControlClient(client,"lowcontroller_step", true);
- 		//current_state = new(std::vector<double>);
+  	ac_ = new LowControlClient(client,"lowcontroller_step", true);
     group = new moveit::planning_interface::MoveGroup("base");
     group->startStateMonitor();
     planning_scene_interface = new moveit::planning_interface::PlanningSceneInterface();
@@ -80,7 +76,6 @@ public:
   	std::cout << "Frame de planeacion: "<< frameplan <<std::endl;
   	co.header.frame_id = group->getPlanningFrame();
   	co.id= "muros";
-
   	shapes::Mesh* m = shapes::createMeshFromResource("package://ltlplanner/models/ENV_6.dae");
   	shape_msgs::Mesh co_mesh;
   	shapes::ShapeMsg co_mesh_msg;
@@ -115,18 +110,15 @@ public:
   }
 
   ~LowPlanner(void){
-  	/*if(ac_ != NULL){
+  	if(ac_ != NULL){
       delete ac_;
-    }*/
+    }
   	if(group != NULL){
       delete group;
     }
     if(planning_scene_interface != NULL){
       delete planning_scene_interface;
     }
-    /*if(current_state != NULL){
-    	delete current_state;
-    }*/
   }
 
   void executeCB(const ltlplanner::lowplanGoalConstPtr &goal)
@@ -135,20 +127,13 @@ public:
     bool pathfound = false;
   	feedback_.done = false;
   	
-    /*while(!ac_->waitForServer(ros::Duration(5.0))){
+    while(!ac_->waitForServer(ros::Duration(5.0))){
     	ROS_INFO("LOWPLANNER : Waiting for lowcontroler_step action server to come up");
-  	}*/
-  	
+  	}
   	
   	std::vector<double> group_variable_values;
   	group->getCurrentState()->copyJointGroupPositions(group->getCurrentState()->getRobotModel()->getJointModelGroup(group->getName()), group_variable_values);
   	
-  	//Imprimir valores act de estado de robotmodel
-  	for(std::vector<double>::const_iterator it = group_variable_values.begin(); it != group_variable_values.end(); ++it){
-  		double aux = *it;
-  		std::cout << "Edo actual:"<< aux <<std::endl;
-  	}
-  
   	group_variable_values[0] = goal->values[0]; //x
   	group_variable_values[1] = goal->values[1]; //y
   	group_variable_values[2] = goal->values[2]; //w
@@ -158,10 +143,6 @@ public:
   	group->setPlannerId("RRTstarkConfigDefault");
   	group->setPlanningTime(30.0);
   	
-  	ROS_INFO("Reference frame: %s", group->getPlanningFrame().c_str());
-  	//Actualizar state inicial del robot
-  	
-  	std::cout << "paso 1 " <<std::endl;
   	robot_state::RobotState robotstart(*group->getCurrentState());
   
   	std::vector<double> act_state;
@@ -170,22 +151,11 @@ public:
   	act_state[1] = current_state[1];
   	act_state[2] = current_state[2];
   	
-  	std::cout << "paso 2 " <<std::endl;
   	robotstart.setJointPositions("virtual_joint", act_state);
-  	std::cout << "paso 3 " <<std::endl;
   	group->setStartState(robotstart);
   	
-  	std::vector<double> group_change;
-  	group->getCurrentState()->copyJointGroupPositions(group->getCurrentState()->getRobotModel()->getJointModelGroup(group->getName()), group_change);
-  	
-  	//Imprimir valores act de estado de robotmodel
-  	for(std::vector<double>::const_iterator it = group_change.begin(); it != group_change.end(); ++it){
-  		double aux = *it;
-  		std::cout << "Edo cambiado:"<< aux <<std::endl;
-  	}
-  	
   	pathfound = group->plan(my_plan);
-  	//Mover el robot
+  	
   	if (pathfound){
   		moveit_msgs::RobotTrajectory rTraj = my_plan.trajectory_;
   		trajectory_msgs::MultiDOFJointTrajectory DOFtraj =  rTraj.multi_dof_joint_trajectory;
@@ -222,36 +192,30 @@ public:
   			std::cout << "LOWPLANNER : y =" << goalp.goalPose.pose.position.y << std::endl;
   			std::cout << "LOWPLANNER : w =" << goalp.goalPose.pose.orientation.w << std::endl;
   			
-  			gazebo_msgs::ModelState state;
-  			state.model_name = "pr2";
-  			state.pose.position.x = goalp.goalPose.pose.position.x;
-  			state.pose.position.y = goalp.goalPose.pose.position.y;
-  			state.pose.position.z = goalp.goalPose.pose.position.z;
-  			state.pose.orientation.x = goalp.goalPose.pose.orientation.x;
-  			state.pose.orientation.y = goalp.goalPose.pose.orientation.y;
-  			state.pose.orientation.z = goalp.goalPose.pose.orientation.z;
-  			state.pose.orientation.w = goalp.goalPose.pose.orientation.w;
-  			//state.reference_frame = "base_footprint";
-  			display_publisher.publish(state);
-  			sleep(1.0);
-  			//ac_->sendGoal(goalp);
-  			//ac_->waitForResult();
+  			ac_->sendGoal(goalp);
+  			ac_->waitForResult();
   			
-  			/*if(ac_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+  			if(ac_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     			ROS_INFO("LOWPLANNER : Bien");
   			else
-    			ROS_INFO("LOWPLANNER : Mal"); */
+    			ROS_INFO("LOWPLANNER : Mal");
   			
   			k ++;
   			as_.publishFeedback(feedback_);
   		}
+		}else{
+			success = false;
 		}
+		
   	
     if(success)
     {
       result_.done = true;
   		result_.trajectory = my_plan.trajectory_;
   		as_.setSucceeded(result_);
+    }else{
+    	result_.done = false;
+    	as_.setAborted (result_);
     }
   }
   

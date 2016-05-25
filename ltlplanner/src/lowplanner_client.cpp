@@ -22,7 +22,7 @@ int main(int argc, char** argv){
 	goal.values.push_back(-4.0);
 	goal.values.push_back(1.0);
 	
-  ROS_INFO("Sending goal from lowerplanner client");
+  ROS_INFO("Sending goal from lowerplanner client 1");
   ac.sendGoal(goal);
 
   ac.waitForResult();
@@ -38,7 +38,23 @@ int main(int argc, char** argv){
 	goal.values[1] = 1.0;
 	goal.values[2] = 0.0;
 	
-  ROS_INFO("Sending goal from lowerplanner client");
+  ROS_INFO("Sending goal from lowerplanner client 2");
+  ac.sendGoal(goal);
+
+  ac.waitForResult();
+
+  if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    ROS_INFO("Bien");
+  else
+    ROS_INFO("Mal");  
+    
+  goal.id = 2;
+	goal.group_name = "base";
+	goal.values[0] = -3.0;
+	goal.values[1] = 3.0;
+	goal.values[2] = 0.5;
+	
+  ROS_INFO("Sending goal from lowerplanner client 3");
   ac.sendGoal(goal);
 
   ac.waitForResult();

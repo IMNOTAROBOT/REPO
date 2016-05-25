@@ -1,6 +1,6 @@
 <launch>
 	<include file="$(find pr2_moveit_config_plus)/launch/demo.launch"/>
   <node name="pose_publisher" pkg="ltlplanner" type="pose_publisher" respawn="false" output="screen"></node>
-  <!-- <node name="lowcontroller_step" pkg="ltlplanner" type="lowcontroller_srv" respawn="false" output="screen"></node> -->
+  <node name="lowcontroller_step" pkg="ltlplanner" type="lowcontroller_srv" respawn="false" output="screen"></node>
   <node name="lowplan_srv" pkg="ltlplanner" type="lowplanner_srv" respawn="false" output="screen"></node>
 </launch>
