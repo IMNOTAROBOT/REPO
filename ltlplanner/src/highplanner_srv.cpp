@@ -1,15 +1,8 @@
 #include <ros/ros.h>
-#include <sstream>
-#include <vector>
-#include <cstdlib>
-#include <stdlib.h>
-#include <math.h>
-//Acciones cliente y servicio
-#include <actionlib/client/simple_action_client.h>
-#include <ltlplanner/lowcontrol_stepAction.h>
 #include <actionlib/server/simple_action_server.h>
-#include <ltlplanner/planningRRTAction.h>
-
+#include <ltlplanner/highplanAction.h>
+#include <ltlplanner/lowplanAction.h>
+#include <actionlib/client/simple_action_client.h>
 #include <ltlplanner/position.h>
 #include "ltlplanner/region.h"
 #include "ltlplanner/limit.h"
@@ -33,98 +26,69 @@
 #include "ltlplanner/ROI_graph.h"
 #include "ltlplanner/map_state.h"
 
-//Colisiones
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/planning_interface/planning_interface.h>
-#include <moveit/planning_scene/planning_scene.h>
-#include <moveit/kinematic_constraints/utils.h>
-#include <map>
-#include "geometry_msgs/Point.h"
-#include <geometric_shapes/shape_operations.h>
-#include <moveit/move_group_interface/move_group.h>
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
-#include <moveit_msgs/DisplayRobotState.h>
-#include <moveit_msgs/PlanningScene.h>
+#include <sstream>
+#include <vector>
+#include <cstdlib>
+#include <stdlib.h> 
 
-#define PI	3.14159265359
 /*
- * planeador RRT de dos capas. 
+ * planeador de alto nivel. Planea entre areas de interes
  */
- 
-typedef actionlib::SimpleActionClient<ltlplanner::lowcontrol_stepAction> MoveBaseClient;
+typedef actionlib::SimpleActionClient<ltlplanner::lowplanAction> LowPlanClient;
 
-class Planner{
-	protected:
+class HighPlanner
+{
+protected:
 
-  	ros::NodeHandle nh_;
-  	ros::NodeHandle client_;
-  	actionlib::SimpleActionServer<ltlplanner::planningRRTAction> as_; 
-  	std::string action_name_;
+  ros::NodeHandle nh_;
+  ros::NodeHandle client;
+  actionlib::SimpleActionServer<ltlplanner::highplanAction> as_; 
+  std::string action_name_;
   
-  	ltlplanner::planningRRTFeedback feedback_;
-  	ltlplanner::planningRRTResult result_;
+  ltlplanner::highplanFeedback feedback_;
+  ltlplanner::highplanResult result_;
   
-  	ltlplanner::ROI_graph graph_;
-  	std::vector<ltlplanner::ROI_node> ROI_DKJpath_;
-  	std::vector<ltlplanner::position> ROI_points_path_;
+  ltlplanner::ROI_graph graph_;
+  std::vector<ltlplanner::ROI_node> ROI_DKJpath_;
+  std::vector<ltlplanner::position> ROI_points_path_;
   
-  	//Para RRT
-  	ltlplanner::ROI_graph RRT_tree_;
-  	std::vector<ltlplanner::ROI_node> RTT_DKJpath_;
-  	std::vector<ltlplanner::position> RTT_points_path_;
-  	
-		MoveBaseClient* ac_;
+	LowPlanClient* ac_;
 	
-		//Clientes de los servicios de region_manager
-		ros::ServiceClient inRegion_clt;
-		ros::ServiceClient getRegionwithPoint_clt;
-		ros::ServiceClient getNeighboursofRegion_clt;
-		ros::ServiceClient rdmPointinRegion_clt;
-		ros::ServiceClient middlePointofRegion_clt;
-		ros::ServiceClient worldLimits_clt;
-		ros::ServiceClient getAllRegions_clt;
-		ros::ServiceClient getROIGraph_clt;
+	//Clientes de los servicios de region_manager
+	ros::ServiceClient inRegion_clt;
+	ros::ServiceClient getRegionwithPoint_clt;
+	ros::ServiceClient getNeighboursofRegion_clt;
+	ros::ServiceClient rdmPointinRegion_clt;
+	ros::ServiceClient middlePointofRegion_clt;
+	ros::ServiceClient worldLimits_clt;
+	ros::ServiceClient getAllRegions_clt;
+	ros::ServiceClient getROIGraph_clt;
 	
-		//Pose actual
-		ros::Subscriber sub_pose;
-		geometry_msgs::PoseStamped actPose_;
-		std::vector<double> current_state;
+	//Pose actual
+	ros::Subscriber sub_pose;
+	geometry_msgs::PoseStamped actPose_;
+	std::vector<double> current_state;
 	
-		//Edo actual de automata
-		int auto_id;
-		int edo_idAct;
+	//Edo actual de automata
+	int auto_id;
+	int edo_idAct;
 	
-		//Regions
-		std::vector<ltlplanner::region> regions_;
-		ltlplanner::limit x_axis;
-		ltlplanner::limit y_axis;
-		
-		//Colisiones
-		moveit::planning_interface::MoveGroup* group;
-		moveit::planning_interface::PlanningSceneInterface* planning_scene_interface;  
-		ros::Publisher collision_object_publisher;
+	//Regions
+	std::vector<ltlplanner::region> regions_;
 	
-	public:
+public:
 
-  Planner(std::string name) :
-   	as_(nh_, name, boost::bind(&Planner::executeCB, this, _1), false),
-   	action_name_(name)
- 	{
+  HighPlanner(std::string name) :
+    as_(nh_, name, boost::bind(&HighPlanner::executeCB, this, _1), false),
+    action_name_(name)
+  {
   	srand(142857);
-  	//Inicializacion de pose actual
   	current_state.push_back(0.0);
     current_state.push_back(0.0);
     current_state.push_back(0.0);
-    x_axis.min = -6.0;
-		x_axis.max = 6.0;
-		y_axis.min = -6.0;
-		y_axis.max = 6.0;
-		
-    //Subsripcion a pose de PR2
-    sub_pose = nh_.subscribe("/ltlplanner/PR2pose", 1000, &Planner::getPR2pose, this);
-  	
-  	ac_ = new MoveBaseClient(client_,"lowcontroller_step", true);
-  	
+    sub_pose = nh_.subscribe("/ltlplanner/PR2pose", 1000, &HighPlanner::getPR2pose, this);
+  	ac_ = new LowPlanClient(client,"lowplan_srv", true);
+  	sleep(10.0);
   	inRegion_clt = nh_.serviceClient<ltlplanner::RM_inRegion>("inRegion_srv");
   	getRegionwithPoint_clt = nh_.serviceClient<ltlplanner::RM_getRegionwithPoint>("regionIdwithPoint_srv");
 		getNeighboursofRegion_clt = nh_.serviceClient<ltlplanner::RM_getNeighboursofRegion>("neighboursofRegion_srv");
@@ -134,71 +98,13 @@ class Planner{
   	getAllRegions_clt = nh_.serviceClient<ltlplanner::RM_getAllRegions>("getAllRegions_srv");
   	getROIGraph_clt = nh_.serviceClient<ltlplanner::RM_ROIgraphGen>("RM_ROIgraphGen_srv");
   	
-  	// Collision with moveIt
-  	
-  	group = new moveit::planning_interface::MoveGroup("base");
-    group->startStateMonitor();
-    planning_scene_interface = new moveit::planning_interface::PlanningSceneInterface();
-    
-    collision_object_publisher = nh_.advertise<moveit_msgs::CollisionObject>("collision_object", 1);
-  	while(collision_object_publisher.getNumSubscribers() < 1)
-  	{
-    	ros::WallDuration sleep_t(0.5);
-    	sleep_t.sleep();
-  	}
-    
-    //Agregar objeto que colisiona
-  	moveit_msgs::CollisionObject co;
-  	std::string frameplan = group->getPlanningFrame();
-  	std::cout << "Frame de planeacion: "<< frameplan <<std::endl;
-  	co.header.frame_id = group->getPlanningFrame();
-  	co.id= "muros";
-  	shapes::Mesh* m = shapes::createMeshFromResource("package://ltlplanner/models/ENV_6.dae");
-  	shape_msgs::Mesh co_mesh;
-  	shapes::ShapeMsg co_mesh_msg;
-  	shapes::constructMsgFromShape(m,co_mesh_msg);
-  	co_mesh = boost::get<shape_msgs::Mesh>(co_mesh_msg);
-  	co.meshes.resize(1);
-  	co.meshes[0] = co_mesh;
-  	co.mesh_poses.resize(1);
-  	co.mesh_poses[0].position.x = -5.0;
-  	co.mesh_poses[0].position.y = -5.0;
-  	co.mesh_poses[0].position.z = 0.0;
-  	co.mesh_poses[0].orientation.w= 0.7071;
-  	co.mesh_poses[0].orientation.x= 0.7071 ;
-  	co.mesh_poses[0].orientation.y= 0.0;
-  	co.mesh_poses[0].orientation.z= 0.0;
-
-  	co.meshes.push_back(co_mesh);
-  	co.mesh_poses.push_back(co.mesh_poses[0]);
-  	co.operation = co.ADD;
-  
-  	/* Publish and sleep (to view the visualized results) */
-  	collision_object_publisher.publish(co);
-  	ros::WallDuration sleep_time(10.0);
-  	sleep_time.sleep();
-
-  	std::vector<moveit_msgs::CollisionObject> collision_objects;  
-  	collision_objects.push_back(co);
-  	planning_scene_interface->addCollisionObjects(collision_objects);
-  	sleep(10.0);
-  	std::cout << "PLANNER: Duermo " << std::endl;
-  	//*****
-  	
   	//Publicar accion
     as_.start();
   }
 
-  ~Planner(void){
+  ~HighPlanner(void){
   	if(ac_ != NULL){
       delete ac_;
-    }
-    
-    if(group != NULL){
-      delete group;
-    }
-    if(planning_scene_interface != NULL){
-      delete planning_scene_interface;
     }
   }
 
@@ -209,15 +115,14 @@ class Planner{
 	}
   
   //Ejecucion de la accion
-  void executeCB(const ltlplanner::planningRRTGoalConstPtr &goal)
+  void executeCB(const ltlplanner::highplanGoalConstPtr &goal)
   {
-  	std::cout << "PLANNER: Empiezo executeCB " << std::endl;
     bool success = true;
     bool pathfound = false;
   	feedback_.done = false;
   	
     while(!ac_->waitForServer(ros::Duration(5.0))){
-    	ROS_INFO("PLANNER : Waiting for lowplanner action server to come up");
+    	ROS_INFO("HIGHPLANNER : Waiting for lowplanner action server to come up");
   	}
   	
   	//Validar edo actual
@@ -226,30 +131,27 @@ class Planner{
   	getRegion_msg.request.values = current_state;
   	
   	if (getRegionwithPoint_clt.call(getRegion_msg)){
-  		std::cout << "PLANNER: Region actual " << getRegion_msg.response.region_id << std::endl;
+  		std::cout << "HIGH PLANER: Region actual " << getRegion_msg.response.region_id << std::endl;
   		region_actId = getRegion_msg.response.region_id;
   	}else{
-    	ROS_ERROR("PLANNER: Failed to call service getIdofRegionwithPoint");
+    	ROS_ERROR("HIGH PLANER: Failed to call service getIdofRegionwithPoint");
     	success = false;
     }
   	
   	if(validateRegion(region_actId) && validateRegion(goal->region_id.at(0))){
   		getROIGraph();
-  		std::cout << "PLANNER: Grafo creado " << std::endl;
+  		std::cout << "HIGH PLANER: Grafo creado " << std::endl;
   		std::vector<ltlplanner::ROI_node> ROI_DKJpath;
   		getROIplan(ROI_DKJpath, region_actId, goal->region_id.at(0));
-  		std::cout << "PLANNER: trayectoria en ROI creada " << std::endl;
+  		std::cout << "HIGH PLANER: trayectoria en ROI creada " << std::endl;
   		for(std::vector<ltlplanner::ROI_node>::const_iterator it = ROI_DKJpath.begin(); it != ROI_DKJpath.end(); ++it){
   			ltlplanner::ROI_node aux = *it;
-  			std::cout << "PLANNER: trayectoria ROI: " << aux.id_region << std::endl;
+  			std::cout << "HIGH PLANER: trayectoria: " << aux.id_region << std::endl;
   		}
   		
-  		//Arbol RRT con ROI
   		std::vector<ltlplanner::position> result_;
-  		double sizeStep = 0.1;
-  		int pointsResolutionMap = 2000;
-  		generateGraphRRTPoints(sizeStep, pointsResolutionMap, result_, ROI_DKJpath, current_state);
-  		std::cout << "PLANNER: objetivos generados " << std::endl;
+  		generateGraphMiddlePoints(result_, ROI_DKJpath);
+  		std::cout << "HIGH PLANER: objetivos generados " << std::endl;
   		
   		for(std::vector<ltlplanner::position>::const_iterator it = result_.begin(); it != result_.end(); ++it){
   			ltlplanner::position aux = *it;
@@ -262,22 +164,22 @@ class Planner{
        	feedback_.done = false;
       	as_.publishFeedback(feedback_);
        	
-       	ltlplanner::lowcontrol_stepGoal goalp;
+       	ltlplanner::lowplanGoal goalp;
   			
-  			goalp.goalPose.header.frame_id = "map";
-  			goalp.goalPose.header.stamp = ros::Time::now();
-
-  			goalp.goalPose.pose.position.x = aux.values.at(0);
-  			goalp.goalPose.pose.position.y = aux.values.at(1);
-  			goalp.goalPose.pose.orientation.w = aux.values.at(2);
-
+  			goalp.id = 0;
+				goalp.group_name = "base";
+				for(std::vector<double>::const_iterator it = aux.values.begin(); it != aux.values.end(); ++it){
+					double aux = *it;
+					goalp.values.push_back(aux);
+				}
+  			
   			ac_->sendGoal(goalp);
   			ac_->waitForResult();
   			
   			if(ac_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
-    			ROS_INFO("PLANNER : Bien");
+    			ROS_INFO("HIGHPLANNER : Bien");
     		}else{
-    			ROS_INFO("PLANNER : Mal");
+    			ROS_INFO("HIGHPLANNER : Mal");
     			success = false;
   			}
   			
@@ -631,125 +533,29 @@ class Planner{
 	}
 		
 	//RRT para regiones de interes
-	bool generateGraphRRTPoints(double sizeStep, int pointsResolutionMap, std::vector<ltlplanner::position> &result_, std::vector<ltlplanner::ROI_node> &ROI_DKJpath, std::vector<double> current_state_){
-		bool res = false;
-		int k = 3;
-		int index_node = 0;
-		int index_edge = 0;
-		//Pedir punto aleatorio dentro de area especifica
-		ltlplanner::RM_rdmPointinRegion msg;
-		ltlplanner::position valsAct;
-		valsAct.values = current_state_;
-		std::vector<double> vectorAux;
-		std::vector<double> vectorAux2;
-		vectorAux2.push_back(0.0);
-		vectorAux2.push_back(0.0);
-		vectorAux2.push_back(0.0);
-		
-		//Inicializar arbol
-		ltlplanner::ROI_graph tree;
-		ltlplanner::ROI_node initial;
-		ltlplanner::ROI_node actNode;
-		initial.point.values = current_state_;
-		initial.id_region = getRegionofPoint(valsAct.values);
-		initial.index = index_node;
-		index_node ++;
-		
-		tree.initial_node = initial;
-		tree.nodes.push_back(initial);
-		
-		actNode = initial;
-		
-		for(std::vector<ltlplanner::ROI_node>::const_iterator it = ROI_DKJpath.begin(); it != ROI_DKJpath.end(); ++it){
+	//Punto medio en region
+  bool generateRRTpath(std::vector<ltlplanner::position> &result_, std::vector<ltlplanner::ROI_node> &ROI_path){
+  	bool res = true;
+  	ltlplanner::RM_rdmPointinRegion msg;
+  	for(std::vector<ltlplanner::ROI_node>::const_iterator it = ROI_path.begin(); it != ROI_path.end(); ++it){
 			ltlplanner::ROI_node aux = *it;
 			msg.request.region_id = aux.id_region;
-			
-			while(getRegionofPoint(actNode.point.values)!= aux.id_region){
-				if (rdmPointinRegion_clt.call(msg)){
-					vectorAux = msg.response.values;
-					getStep(actNode.point.values, vectorAux, sizeStep, vectorAux2);
-					bool collision = checkCollision(vectorAux2);
-					if(!collision){
-						ltlplanner::ROI_node aux3;
-						aux3.id_region = aux.id_region;
-						aux3.point.values = vectorAux2;
-						aux3.index = index_node;
-						index_node ++;
-						tree.nodes.push_back(aux3);
-						ltlplanner::ROI_edge edge_aux;
-						edge_aux.index = index_edge;
-						index_edge ++;
-						edge_aux.id_a = actNode.index;
-						edge_aux.id_b = aux3.index;
-						tree.edges.push_back(edge_aux);
-						getRandomNode(tree.nodes, actNode);
-					}
-				}	
-			}
+			if (rdmPointinRegion_clt.call(msg)){
+				//Del punto ir a ese punto y unir con distancia de 0.5
+				ltlplanner::position vals;
+				vals.values = msg.response.values;
+  			result_.push_back(vals);
+  		}
 		}
-		res = getTrajectoryRRT(result_, tree);
-		return res;
-	}
-	
-	void getStep(std::vector<double> &initial_point, std::vector<double> &vec_dir, double sizeStep, std::vector<double> &vec_res){
-		double distance = sqrt(((initial_point.at(0) - vec_dir.at(0)) * (initial_point.at(0) - vec_dir.at(0))) + ((initial_point.at(1) - vec_dir.at(1)) * (initial_point.at(1) - vec_dir.at(1))));
-		if(distance <= sizeStep){
-			vec_res = vec_dir;
-		}else{
-			//Calcular angulos A y B para luego calcular x2 y y2 de punto a distancia step
-			double ang_c = PI/2;
-			double ang_a = asin((vec_dir.at(0) * sin(ang_c))/distance);
-			double ang_b = asin((vec_dir.at(1) * sin(ang_c))/distance);
-			
-			vec_res.at(2) = vec_dir.at(2);
-			vec_res.at(0) = (sizeStep * sin(ang_a)/ sin(ang_c));
-			vec_res.at(1) = (sizeStep * sin(ang_b)/ sin(ang_c));
-		}
-	}
-	
-	bool checkCollision(std::vector<double> &point){
-		bool res = false;
-		std::vector<std::string> aux = planning_scene_interface->getKnownObjectNamesInROI(point.at(0) - 0.5, point.at(1) - 0.5, 0.0, point.at(0) + 0.5, point.at(1) + 0.5, 1.0, false);
-		if(aux.size() > 0 ){
-			res = true;
-		} 	
-		return res;
-	} 
-	
-	void getRandomNode(std::vector<ltlplanner::ROI_node> &nodes, ltlplanner::ROI_node &actNode){
-		int place = rand() % nodes.size();         // v1 in the range 0 to 99
-		actNode = nodes.at(place);
-	}
-	
-	bool getTrajectoryRRT(std::vector<ltlplanner::position> &result_, ltlplanner::ROI_graph &tree){
-		bool res = false;
-		std::vector<ltlplanner::ROI_node> ROI_DKJpath;
-		res = lookforPath(tree, ROI_DKJpath, tree.nodes.at(0).index, tree.nodes.at(tree.nodes.size()-1).index);
-		if(res){
-			for(std::vector<ltlplanner::ROI_node>::const_iterator it = ROI_DKJpath.begin(); it != ROI_DKJpath.end(); ++it){
-				ltlplanner::ROI_node aux = *it;
-				result_.push_back(aux.point);
-			}
-		}
-		return res;
-	}
-	
-	int getRegionofPoint(std::vector<double> &values){
-		int res;
-		ltlplanner::RM_getRegionwithPoint getRegion_msg;
-  	getRegion_msg.request.values = values;
-  	if (getRegionwithPoint_clt.call(getRegion_msg)){
-  		res = getRegion_msg.response.region_id;
-  	}
-		return res;
-	}
+  	return res;
+  }
 };
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "twolevelplanning_srv");
+  ros::init(argc, argv, "highplan_srv");
 
-  Planner planner(ros::this_node::getName());
+  HighPlanner hplan(ros::this_node::getName());
   ros::spin();
 
   return 0;

@@ -7,3 +7,4 @@ int64 DOF_mg
 ltlplanner/limit[] limits
 int64 idregionparent
 int64[] idregionchildren
+int64[] idneighbours

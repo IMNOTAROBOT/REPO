@@ -23,11 +23,11 @@
 #include "ltlplanner/plan_msg.h"
 
 //Planear
-#include <ltlplanner/highplanAction.h>
+#include <ltlplanner/planningRRTAction.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 
-typedef actionlib::SimpleActionClient<ltlplanner::highplanAction> HighPlanClient;
+typedef actionlib::SimpleActionClient<ltlplanner::planningRRTAction> HighPlanClient;
 
 class Manager{
 	private:
@@ -47,7 +47,7 @@ class Manager{
   	Manager(ros::NodeHandle &nh){
     	nh_ = nh;
     	pub_plan = nh_.advertise<ltlplanner::plan_msg>("/public/plan", 1);
-    	ac_ = new HighPlanClient(client,"highplan_srv", true);
+    	ac_ = new HighPlanClient(client,"twolevelplanning_srv", true);
     	actGoal.id = -1;
     	index = 0;
     	planning = false;
@@ -194,7 +194,7 @@ class Manager{
 			for(std::vector<ltlplanner::task>::const_iterator it = plan_.tasks.begin(); it != plan_.tasks.end(); ++it){
 				ltlplanner::task aux = *it;
 				
-				ltlplanner::highplanGoal goal;
+				ltlplanner::planningRRTGoal goal;
  	 			
  	 			goal.id = aux.id;
  	 			goal.group_name = aux.name_mg;

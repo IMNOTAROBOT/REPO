@@ -34,12 +34,12 @@ class Region{
 			area_0.DOF_mg = 3;
 	
 			ltlplanner::limit lim_0_1;
-			lim_0_1.min = -5.0;
-			lim_0_1.max = 5.0;
+			lim_0_1.min = -0.5;
+			lim_0_1.max = 0.5;
 	
 			ltlplanner::limit lim_0_2;
-			lim_0_2.min = -5.0;
-			lim_0_2.max = 5.0;
+			lim_0_2.min = -0.5;
+			lim_0_2.max = 0.5;
 	
 			ltlplanner::limit lim_0_3;
 			lim_0_3.min = -3.14;
@@ -49,6 +49,8 @@ class Region{
 			area_0.limits.push_back(lim_0_2);
 			area_0.limits.push_back(lim_0_3);
 		
+			area_0.idneighbours.push_back(1);
+			
 			ltlplanner::region area_1;
 			area_1.name_r = "P1";
 			area_1.alias_r = "Kitchen";
@@ -61,8 +63,8 @@ class Region{
 			lim_1_1.max = 1.1;
 	
 			ltlplanner::limit lim_1_2;
-			lim_1_2.min = 3.8;
-			lim_1_2.max = 4.2;
+			lim_1_2.min = 0.9;
+			lim_1_2.max = 1.1;
 	
 			ltlplanner::limit lim_1_3;
 			lim_1_3.min = -3.14;
@@ -72,6 +74,9 @@ class Region{
 			area_1.limits.push_back(lim_1_2);
 			area_1.limits.push_back(lim_1_3);
 	
+			area_1.idneighbours.push_back(0);
+			area_1.idneighbours.push_back(2);
+			
 			ltlplanner::region area_2;
 			area_2.name_r = "P2";
 			area_2.alias_r = "Living";
@@ -95,6 +100,8 @@ class Region{
 			area_2.limits.push_back(lim_2_2);
 			area_2.limits.push_back(lim_2_3);
 			
+			area_2.idneighbours.push_back(1);
+			
 			regions_.push_back(area_0);
 			regions_.push_back(area_1);
 			regions_.push_back(area_2);
@@ -103,13 +110,14 @@ class Region{
 		bool sendRegions(){
 			bool res = false;
 			while(ros::ok()){
-				sleep(10.0);
+				sleep(1.0);
 				for(std::vector<ltlplanner::region>::const_iterator it = regions_.begin(); it != regions_.end(); ++it){
-					sleep(10.0);
+					sleep(1.0);
 					ltlplanner::region aux = *it;
 					ltlplanner::region_msg region_msg;
 					region_msg.id = index;
 					region_msg.region = aux;
+					region_msg.totalRegions = 3;
 					pub_region.publish(region_msg);
 					index++;
 				}
