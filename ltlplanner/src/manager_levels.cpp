@@ -16,18 +16,18 @@
 #include <vector>
 #include <sstream>
 #include <stdlib.h>
-
+#include <time.h>
 #include "ltlplanner/automaton_msg.h"
 #include "ltlplanner/region_msg.h"
 #include "ltlplanner/goal_msg.h"
 #include "ltlplanner/plan_msg.h"
 
 //Planear
-#include <ltlplanner/highplanAction.h>
+#include <ltlplanner/planningRRTAction.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 
-typedef actionlib::SimpleActionClient<ltlplanner::highplanAction> HighPlanClient;
+typedef actionlib::SimpleActionClient<ltlplanner::planningRRTAction> HighPlanClient;
 
 class Manager{
 	private:
@@ -47,12 +47,12 @@ class Manager{
   	Manager(ros::NodeHandle &nh){
     	nh_ = nh;
     	pub_plan = nh_.advertise<ltlplanner::plan_msg>("/public/plan", 1);
-    	ac_ = new HighPlanClient(client,"highplan_srv", true);
+    	ac_ = new HighPlanClient(client,"twolevelplanning_srv", true);
     	actGoal.id = -1;
     	index = 0;
     	planning = false;
     	while(!ac_->waitForServer(ros::Duration(5.0))){
-    		ROS_INFO("HIGHPLANNER : Waiting for lowplanner action server to come up");
+    		ROS_INFO("MANAGER : Waiting for 2LP action server to come up");
   		}
   	}
 
@@ -154,21 +154,21 @@ class Manager{
 		void listeningRegions(const ltlplanner::region_msgPtr& msg){
   		bool res = addRegion(msg->region);
   		if(res){
-  			std::cout << "Se agrego region: " << msg->region.id << std::endl;
+  			//std::cout << "MANAGER: Se agrego region: " << msg->region.id << std::endl;
   		}
 		}
 
 		void listeningAutomatas(const ltlplanner::automaton_msgPtr& msg){
   		bool res = addAutomata(msg->automata);
   		if(res){
-  			std::cout << "Se agrego automata: " << msg->automata.id << std::endl;
+  			//std::cout << "MANAGER: Se agrego automata: " << msg->automata.id << std::endl;
   		}
 		}
 		
 		void listeningGoals(const ltlplanner::goal_msgPtr& msg){
 			if(actGoal.id != msg->goal.id){
 				setGoal(msg->goal);
-  			std::cout << "Se agrego objetivo: " << msg->goal.id << " " << msg->goal.goal << std::endl;	
+  			//std::cout << "MANAGER: Se agrego objetivo: " << msg->goal.id << " " << msg->goal.goal << std::endl;	
   			planning = false;	
 			}
 			if(!planning){
@@ -184,42 +184,54 @@ class Manager{
 			ltlplanner::plan_msg plan_msg;
 			plan_msg.id = index;
 			plan_msg.plan = plan_;
-			std::cout << "Se publico plan: " << plan_.id << std::endl;
+			//std::cout << "MANAGER: Se publico plan: " << plan_.id << std::endl;
 			pub_plan.publish(plan_msg);
 			index++;	
 		}
 		
 		bool executePlan(){
 			bool res = false;
+			double secs_s_tot =ros::Time::now().toSec();
 			for(std::vector<ltlplanner::task>::const_iterator it = plan_.tasks.begin(); it != plan_.tasks.end(); ++it){
 				ltlplanner::task aux = *it;
 				
-				ltlplanner::highplanGoal goal;
+				ltlplanner::planningRRTGoal goal;
  	 			
  	 			goal.id = aux.id;
  	 			goal.group_name = aux.name_mg;
+ 	 				
  	 			goal.region_id = aux.trans_alphabet;
- 	 		
+ 	 			
+ 	 			double secs_s =ros::Time::now().toSec();
+ 	 			//clock_t start = clock();     
+
 	  		ac_->sendGoal(goal);
-				
 				ac_->waitForResult();
-  			
+				
   			if(ac_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
-    			std::cout << "MANAGER: Se complio: " << aux.id << std::endl;
+    			std::cout << "MANAGER: Se cumplio tarea: " << aux.id << std::endl;
     			res = true;
     		}else{
-    			ROS_INFO("MANAGER : Mal");
+    			std::cout << "MANAGER: NO se cumplio tarea: " << aux.id << std::endl;
     			res = false;
   			}
+  			//clock_t ticks = clock()-start;     
+				//std::cout << "Time Taken:" << (double)ticks/CLOCKS_PER_SEC << std::endl;
 				
+				double secs_e =ros::Time::now().toSec(); 
+				double time_total = secs_e - secs_s;
+				std::cout << "MANAGER: Tiempo (ns) para EJECUTAR tarea" << aux.id << " = " << time_total << std::endl;	
 			}
+			double secs_e_tot =ros::Time::now().toSec(); 
+			double time_total_tasks = secs_e_tot - secs_s_tot;
+			std::cout << "MANAGER: Tiempo (ns) para EJECUTAR plan COMPLETO = " << time_total_tasks << std::endl;			
 			return res;
-		
 		}
 		//I. Metodo raiz para crear plan segun un objetivo
 		void setPlan(){
+			double secs_s =ros::Time::now().toSec();
 			if(actGoal.id != -1 && isinAutomatas(actGoal.id_automata)){
-				std::cout << "Planear" << std::endl;
+				std::cout << "MANAGER: Planeando..." << std::endl;
 				ltlplanner::automaton auto_ = getAutomata(actGoal.id_automata);
 				std::vector<ltlplanner::taskPtr> tasks;
 				bool res = lookforpath(auto_, tasks);
@@ -233,6 +245,9 @@ class Manager{
 					planning = true;
 				}
 			}
+			double secs_e =ros::Time::now().toSec(); 
+			double time_total = secs_e - secs_s;
+			std::cout << "MANAGER: Tiempo (s) para PLANEAR tareas = " << time_total << std::endl;
 		}
 		
 		//II. Metodo Dikjstra para generar una trayectoria corta y valida dentro del automata.

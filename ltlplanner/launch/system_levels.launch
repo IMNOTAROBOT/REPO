@@ -2,7 +2,6 @@
 	<include file="$(find pr2_moveit_config_plus)/launch/demo.launch"/>
 	<node name="region_manager_srv" pkg="ltlplanner" type="region_manager_srv" respawn="false" output="screen"></node>
   <node name="pose_publisher" pkg="ltlplanner" type="pose_publisher" respawn="false" output="screen"></node>
-  <node name="highplan_srv" pkg="ltlplanner" type="highplanner_srv" respawn="false" output="screen"></node>
   <node name="lowcontroller_step" pkg="ltlplanner" type="lowcontroller_srv" respawn="false" output="screen"></node>
-  <node name="lowplan_srv" pkg="ltlplanner" type="lowplanner_srv" respawn="false" output="screen"></node>
+  <node name="twolevelplanning_srv" pkg="ltlplanner" type="planner_manager" respawn="false" output="screen"></node>
 </launch>

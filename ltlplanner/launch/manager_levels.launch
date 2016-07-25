@@ -1,0 +1,3 @@
+<launch>
+  <node name="manager_levels" pkg="ltlplanner" type="manager_levels" respawn="false" output="screen"></node>
+</launch>

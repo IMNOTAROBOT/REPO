@@ -45,10 +45,23 @@ add_message_files(
   map_state.msg
   edge.msg
   node.msg
+  position.msg
+  ROI_edge.msg
+  ROI_graph.msg
+  ROI_node.msg
+  object.msg
 )
 
 add_service_files(
   FILES
+  RM_inRegion.srv
+  RM_getRegionwithPoint.srv
+  RM_getNeighboursofRegion.srv
+  RM_rdmPointinRegion.srv
+  RM_middlePointofRegion.srv
+  RM_worldLimits.srv
+  RM_getAllRegions.srv
+  RM_ROIgraphGen.srv
 )
 
 add_action_files(
@@ -56,6 +69,8 @@ add_action_files(
   FILES lowplan.action
   lowcontrol.action
   lowcontrol_step.action
+  highplan.action
+  planningRRT.action
 )
 
 generate_messages(
@@ -89,6 +104,11 @@ target_link_libraries(manager ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(manager ltlplanner_generate_messages_cpp)
 install(TARGETS manager DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+add_executable(manager_levels src/manager_levels.cpp)
+target_link_libraries(manager_levels ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(manager_levels ltlplanner_generate_messages_cpp)
+install(TARGETS manager_levels DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 add_executable(pub_goal src/pub_goal.cpp)
 target_link_libraries(pub_goal ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(pub_goal ltlplanner_generate_messages_cpp)
@@ -114,6 +134,16 @@ target_link_libraries(planner_manager ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(planner_manager ltlplanner_generate_messages_cpp)
 install(TARGETS planner_manager DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+add_executable(planner_manager_client src/planner_manager_client.cpp)
+target_link_libraries(planner_manager_client ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(planner_manager_client ltlplanner_generate_messages_cpp)
+install(TARGETS planner_manager_client DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(highplanner_srv src/highplanner_srv.cpp)
+target_link_libraries(highplanner_srv ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(highplanner_srv ${ltlplanner_EXPORTED_TARGETS})
+install(TARGETS highplanner_srv DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 add_executable(lowplanner_srv src/lowplanner_srv.cpp)
 target_link_libraries(lowplanner_srv ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(lowplanner_srv ${ltlplanner_EXPORTED_TARGETS})
@@ -134,9 +164,24 @@ target_link_libraries(lowplanner_client ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(lowplanner_client ${ltlplanner_EXPORTED_TARGETS})
 install(TARGETS lowplanner_client DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+add_executable(highplanner_client src/highplanner_client.cpp)
+target_link_libraries(highplanner_client ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(highplanner_client ${ltlplanner_EXPORTED_TARGETS})
+install(TARGETS highplanner_client DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 add_executable(pose_publisher src/pose_publisher.cpp)
 target_link_libraries(pose_publisher ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 install(TARGETS pose_publisher DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(region_manager_srv src/region_manager_srv.cpp)
+target_link_libraries(region_manager_srv ${catkin_LIBRARIES})
+add_dependencies(region_manager_srv ltlplanner_gencpp)
+install(TARGETS region_manager_srv DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(region_manager_client src/region_manager_client.cpp)
+target_link_libraries(region_manager_client ${catkin_LIBRARIES})
+add_dependencies(region_manager_client ltlplanner_gencpp)
+install(TARGETS region_manager_client DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 

@@ -1,7 +1,10 @@
-int64 id
-string group_name
-moveit_msgs/RobotTrajectory trajectory
+#Goal definition
+geometry_msgs/PoseStamped goalPose
 ---
+#Result definition
 bool done
+geometry_msgs/PoseStamped resultPose
 ---
+#feedback
 bool done
+geometry_msgs/PoseStamped feedPose

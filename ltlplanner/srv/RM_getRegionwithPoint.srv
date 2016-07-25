@@ -1,0 +1,4 @@
+float64[] values
+---
+#regresa -1 si no pertence a ninguna
+int64 region_id
