@@ -13,6 +13,7 @@
 #include <ltlplanner/position.h>
 #include "ltlplanner/region.h"
 #include "ltlplanner/limit.h"
+<<<<<<< HEAD
 
 //Servicios de region_manager
 #include "ltlplanner/RM_inRegion.h"
@@ -47,6 +48,42 @@
 #include "ltlplanner/object.h"
 
 #define PI	3.1415926
+=======
+
+//Servicios de region_manager
+#include "ltlplanner/RM_inRegion.h"
+#include "ltlplanner/RM_getRegionwithPoint.h"
+#include "ltlplanner/RM_getNeighboursofRegion.h"
+#include "ltlplanner/RM_rdmPointinRegion.h"
+#include "ltlplanner/RM_middlePointofRegion.h"
+#include "ltlplanner/RM_worldLimits.h"
+#include "ltlplanner/RM_getAllRegions.h"
+#include "ltlplanner/RM_ROIgraphGen.h"
+
+//Publicacion de edo actual
+#include <geometry_msgs/PoseStamped.h>
+
+//Para planear con regiones de interes ROI
+#include "ltlplanner/ROI_edge.h"
+#include "ltlplanner/ROI_node.h"
+#include "ltlplanner/ROI_graph.h"
+#include "ltlplanner/map_state.h"
+
+//Colisiones
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/kinematic_constraints/utils.h>
+#include <map>
+#include "geometry_msgs/Point.h"
+#include <geometric_shapes/shape_operations.h>
+#include <moveit/move_group_interface/move_group.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit_msgs/DisplayRobotState.h>
+#include <moveit_msgs/PlanningScene.h>
+
+#define PI	3.14159265359
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 /*
  * planeador RRT de dos capas. 
  */
@@ -98,21 +135,31 @@ class Planner{
 		std::vector<ltlplanner::region> regions_;
 		ltlplanner::limit x_axis;
 		ltlplanner::limit y_axis;
+<<<<<<< HEAD
 		ltlplanner::limit angle_axis;
+=======
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 		
 		//Colisiones
 		moveit::planning_interface::MoveGroup* group;
 		moveit::planning_interface::PlanningSceneInterface* planning_scene_interface;  
 		ros::Publisher collision_object_publisher;
+<<<<<<< HEAD
 		std::vector<ltlplanner::object> collisions_;
+=======
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 	
 	public:
 
   Planner(std::string name) :
    	as_(nh_, name, boost::bind(&Planner::executeCB, this, _1), false),
    	action_name_(name)
+<<<<<<< HEAD
  	{	
  		std::cout << "PLANNER: Inicializando " <<std::endl;
+=======
+ 	{
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   	srand(142857);
   	//Inicializacion de pose actual
   	current_state.push_back(0.0);
@@ -122,15 +169,21 @@ class Planner{
 		x_axis.max = 6.0;
 		y_axis.min = -6.0;
 		y_axis.max = 6.0;
+<<<<<<< HEAD
 		angle_axis.min = -3.14;
 		angle_axis.max = 3.14;
+=======
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 		
     //Subsripcion a pose de PR2
     sub_pose = nh_.subscribe("/ltlplanner/PR2pose", 1000, &Planner::getPR2pose, this);
   	
   	ac_ = new MoveBaseClient(client_,"lowcontroller_step", true);
   	
+<<<<<<< HEAD
   	//Servicios de regiones
+=======
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   	inRegion_clt = nh_.serviceClient<ltlplanner::RM_inRegion>("inRegion_srv");
   	getRegionwithPoint_clt = nh_.serviceClient<ltlplanner::RM_getRegionwithPoint>("regionIdwithPoint_srv");
 		getNeighboursofRegion_clt = nh_.serviceClient<ltlplanner::RM_getNeighboursofRegion>("neighboursofRegion_srv");
@@ -156,7 +209,11 @@ class Planner{
     //Agregar objeto que colisiona
   	moveit_msgs::CollisionObject co;
   	std::string frameplan = group->getPlanningFrame();
+<<<<<<< HEAD
   	//std::cout << "PLANNER: Frame de planeacion: "<< frameplan <<std::endl;
+=======
+  	std::cout << "Frame de planeacion: "<< frameplan <<std::endl;
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   	co.header.frame_id = group->getPlanningFrame();
   	co.id= "muros";
   	shapes::Mesh* m = shapes::createMeshFromResource("package://ltlplanner/models/ENV_6.dae");
@@ -188,14 +245,21 @@ class Planner{
   	collision_objects.push_back(co);
   	planning_scene_interface->addCollisionObjects(collision_objects);
   	sleep(10.0);
+<<<<<<< HEAD
   	//std::cout << "PLANNER: Duermo 10 s" << std::endl;
   	
   	addCollisionObjects(collisions_);
+=======
+  	std::cout << "PLANNER: Duermo " << std::endl;
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   	//*****
   	
   	//Publicar accion
     as_.start();
+<<<<<<< HEAD
     std::cout << "PLANNER: Listo"<< frameplan <<std::endl;
+=======
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   }
 
   ~Planner(void){
@@ -220,13 +284,21 @@ class Planner{
   //Ejecucion de la accion
   void executeCB(const ltlplanner::planningRRTGoalConstPtr &goal)
   {
+<<<<<<< HEAD
   	std::cout << "PLANNER: Empiezo ejecucion ... " << std::endl;
+=======
+  	std::cout << "PLANNER: Empiezo executeCB " << std::endl;
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
     bool success = true;
     bool pathfound = false;
   	feedback_.done = false;
   	
     while(!ac_->waitForServer(ros::Duration(5.0))){
+<<<<<<< HEAD
     	ROS_INFO("PLANNER : Waiting for low controller action server to come up");
+=======
+    	ROS_INFO("PLANNER : Waiting for lowplanner action server to come up");
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   	}
   	
   	//Validar edo actual
@@ -235,7 +307,11 @@ class Planner{
   	getRegion_msg.request.values = current_state;
   	
   	if (getRegionwithPoint_clt.call(getRegion_msg)){
+<<<<<<< HEAD
   		//std::cout << "PLANNER: Region actual " << getRegion_msg.response.region_id << std::endl;
+=======
+  		std::cout << "PLANNER: Region actual " << getRegion_msg.response.region_id << std::endl;
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   		region_actId = getRegion_msg.response.region_id;
   	}else{
     	ROS_ERROR("PLANNER: Failed to call service getIdofRegionwithPoint");
@@ -244,6 +320,7 @@ class Planner{
   	
   	if(validateRegion(region_actId) && validateRegion(goal->region_id.at(0))){
   		getROIGraph();
+<<<<<<< HEAD
   		//std::cout << "PLANNER: Grafo creado " << std::endl;
   		std::vector<ltlplanner::ROI_node> ROI_DKJpath;
   		
@@ -292,6 +369,24 @@ class Planner{
   		}*/
   		
   		double secs_start_TOT =ros::Time::now().toSec();
+=======
+  		std::cout << "PLANNER: Grafo creado " << std::endl;
+  		std::vector<ltlplanner::ROI_node> ROI_DKJpath;
+  		getROIplan(ROI_DKJpath, region_actId, goal->region_id.at(0));
+  		std::cout << "PLANNER: trayectoria en ROI creada " << std::endl;
+  		for(std::vector<ltlplanner::ROI_node>::const_iterator it = ROI_DKJpath.begin(); it != ROI_DKJpath.end(); ++it){
+  			ltlplanner::ROI_node aux = *it;
+  			std::cout << "PLANNER: trayectoria ROI: " << aux.id_region << std::endl;
+  		}
+  		
+  		//Arbol RRT con ROI
+  		std::vector<ltlplanner::position> result_;
+  		double sizeStep = 0.1;
+  		int pointsResolutionMap = 2000;
+  		generateGraphRRTPoints(sizeStep, pointsResolutionMap, result_, ROI_DKJpath, current_state);
+  		std::cout << "PLANNER: objetivos generados " << std::endl;
+  		
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   		for(std::vector<ltlplanner::position>::const_iterator it = result_.begin(); it != result_.end(); ++it){
   			ltlplanner::position aux = *it;
   			if (as_.isPreemptRequested() || !ros::ok()){
@@ -312,11 +407,15 @@ class Planner{
   			goalp.goalPose.pose.position.y = aux.values.at(1);
   			goalp.goalPose.pose.orientation.w = aux.values.at(2);
 
+<<<<<<< HEAD
 				double secs_start_STEP =ros::Time::now().toSec();
+=======
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   			ac_->sendGoal(goalp);
   			ac_->waitForResult();
   			
   			if(ac_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
+<<<<<<< HEAD
     			ROS_INFO("PLANNER : Se ejecuto accion Bien");
     		}else{
     			ROS_INFO("PLANNER : Se ejecuto accion Mal");
@@ -329,6 +428,15 @@ class Planner{
   		double secs_end_TOT =ros::Time::now().toSec(); 
 			double time_total_TOT = secs_end_TOT - secs_start_TOT;
   		std::cout << "PLANNER: Tiempo (s) para crear TOTAL path plan = " << time_total_TOT << std::endl;
+=======
+    			ROS_INFO("PLANNER : Bien");
+    		}else{
+    			ROS_INFO("PLANNER : Mal");
+    			success = false;
+  			}
+  			
+  		}
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   	}else{
   		success = false;
   	}
@@ -382,7 +490,11 @@ class Planner{
   bool getRegions(){
   	bool res = false;
   	ltlplanner::RM_getAllRegions msg;
+<<<<<<< HEAD
   	msg.request.client = "PLANNER";
+=======
+  	msg.request.client = "HIGH_PLANNER";
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   	
   	if (getAllRegions_clt.call(msg)){
   		res = true;
@@ -394,7 +506,11 @@ class Planner{
   bool getROIGraph(){
   	bool res = false;
   	ltlplanner::RM_ROIgraphGen msg;
+<<<<<<< HEAD
   	msg.request.client = "PLANNER";
+=======
+  	msg.request.client = "HIGH_PLANNER";
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   	
   	if (getROIGraph_clt.call(msg)){
   		res = true;
@@ -632,6 +748,7 @@ class Planner{
 				}
 			}
 			return dist;
+<<<<<<< HEAD
 		}
 		
 		//Devuelve la trayectoria mas corta entre nodo origen y otro nodo
@@ -674,9 +791,32 @@ class Planner{
 		for(std::vector<ltlplanner::ROI_node>::const_iterator it = pathaux.end()-1; it >= pathaux.begin(); --it){
 			ltlplanner::ROI_node aux = *it;
 			path.push_back(aux);
+=======
+		}
+		
+		//Devuelve la trayectoria mas corta entre nodo origen y otro nodo
+		bool getPath(ltlplanner::ROI_node &target, std::vector<ltlplanner::ROI_node> &path, std::vector<ltlplanner::map_state> &predecessors, std::vector<ltlplanner::ROI_node> &states){
+			std::vector<ltlplanner::ROI_node> pathaux;
+			ltlplanner::ROI_node step;
+			ltlplanner::ROI_node aux;
+			step = target;
+			
+			if(!predecessorsGet(step.id_region, aux, predecessors, states)){
+				return false;
+			}
+			pathaux.push_back(step);
+			while(predecessorsGet(step.id_region, aux, predecessors, states)){
+				step = aux;
+				pathaux.push_back(step);
+			}
+			reverse(pathaux, path);
+			
+			return true;
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 		}
 	}
 		
+<<<<<<< HEAD
 	//RRT para regiones de interes
 	bool generateGraphRRTPoints(double sizeStep, int pointsResolutionMap, std::vector<ltlplanner::position> &result_, std::vector<ltlplanner::ROI_node> &ROI_DKJpath, std::vector<double> current_state_){
 		//Variable indicadora si se encontro el camino
@@ -757,6 +897,75 @@ class Planner{
 						aux3.point.values = RdmVector2;
 						aux3.index = index_node;
 						aux3.parent = actNode.index;
+=======
+		bool predecessorsGet(int id, ltlplanner::ROI_node &node, std::vector<ltlplanner::map_state> &predecessors, std::vector<ltlplanner::ROI_node> &states){
+			bool res = false;
+			int place = -1;
+			for(std::vector<ltlplanner::map_state>::const_iterator it = predecessors.begin(); it != predecessors.end(); ++it){
+				ltlplanner::map_state aux = *it;
+				if(aux.id_a == id){
+					place = aux.id_b;
+					res = true;
+				}
+			}
+			if(res){
+				getNodePtr(place, node, states);
+			}
+			return res;
+		}
+		
+	void reverse(std::vector<ltlplanner::ROI_node> &pathaux, std::vector<ltlplanner::ROI_node> &path){
+		for(std::vector<ltlplanner::ROI_node>::const_iterator it = pathaux.end()-1; it >= pathaux.begin(); --it){
+			ltlplanner::ROI_node aux = *it;
+			path.push_back(aux);
+		}
+	}
+		
+	//RRT para regiones de interes
+	bool generateGraphRRTPoints(double sizeStep, int pointsResolutionMap, std::vector<ltlplanner::position> &result_, std::vector<ltlplanner::ROI_node> &ROI_DKJpath, std::vector<double> current_state_){
+		bool res = false;
+		int k = 3;
+		int index_node = 0;
+		int index_edge = 0;
+		//Pedir punto aleatorio dentro de area especifica
+		ltlplanner::RM_rdmPointinRegion msg;
+		ltlplanner::position valsAct;
+		valsAct.values = current_state_;
+		std::vector<double> vectorAux;
+		std::vector<double> vectorAux2;
+		vectorAux2.push_back(0.0);
+		vectorAux2.push_back(0.0);
+		vectorAux2.push_back(0.0);
+		
+		//Inicializar arbol
+		ltlplanner::ROI_graph tree;
+		ltlplanner::ROI_node initial;
+		ltlplanner::ROI_node actNode;
+		initial.point.values = current_state_;
+		initial.id_region = getRegionofPoint(valsAct.values);
+		initial.index = index_node;
+		index_node ++;
+		
+		tree.initial_node = initial;
+		tree.nodes.push_back(initial);
+		
+		actNode = initial;
+		
+		for(std::vector<ltlplanner::ROI_node>::const_iterator it = ROI_DKJpath.begin(); it != ROI_DKJpath.end(); ++it){
+			ltlplanner::ROI_node aux = *it;
+			msg.request.region_id = aux.id_region;
+			
+			while(getRegionofPoint(actNode.point.values)!= aux.id_region){
+				if (rdmPointinRegion_clt.call(msg)){
+					vectorAux = msg.response.values;
+					getStep(actNode.point.values, vectorAux, sizeStep, vectorAux2);
+					bool collision = checkCollision(vectorAux2);
+					if(!collision){
+						ltlplanner::ROI_node aux3;
+						aux3.id_region = aux.id_region;
+						aux3.point.values = vectorAux2;
+						aux3.index = index_node;
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 						index_node ++;
 						tree.nodes.push_back(aux3);
 						ltlplanner::ROI_edge edge_aux;
@@ -765,6 +974,7 @@ class Planner{
 						edge_aux.id_a = actNode.index;
 						edge_aux.id_b = aux3.index;
 						tree.edges.push_back(edge_aux);
+<<<<<<< HEAD
 					
 						ltlplanner::ROI_edge edge_aux2;
 						edge_aux2.index = index_edge;
@@ -812,10 +1022,19 @@ class Planner{
 		}else{
 			std::cout << "PLANNER: No se genero trayectoria " << std::endl;
 		}
+=======
+						getRandomNode(tree.nodes, actNode);
+					}
+				}	
+			}
+		}
+		res = getTrajectoryRRT(result_, tree);
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 		return res;
 	}
 	
 	void getStep(std::vector<double> &initial_point, std::vector<double> &vec_dir, double sizeStep, std::vector<double> &vec_res){
+<<<<<<< HEAD
 		double distance = sqrt(((vec_dir.at(0) - initial_point.at(0)) * (vec_dir.at(0) - initial_point.at(0))) + ((vec_dir.at(1) - initial_point.at(1)) * (vec_dir.at(1) - initial_point.at(1))));
 		/*if(distance <= sizeStep){
 			vec_res = vec_dir;
@@ -829,10 +1048,26 @@ class Planner{
 			vec_res.at(0) = initial_point.at(0) + (sizeStep * sin(ang_a)/ sin(ang_c));
 			vec_res.at(1) = initial_point.at(1) + (sizeStep * sin(ang_b)/ sin(ang_c));
 		//}
+=======
+		double distance = sqrt(((initial_point.at(0) - vec_dir.at(0)) * (initial_point.at(0) - vec_dir.at(0))) + ((initial_point.at(1) - vec_dir.at(1)) * (initial_point.at(1) - vec_dir.at(1))));
+		if(distance <= sizeStep){
+			vec_res = vec_dir;
+		}else{
+			//Calcular angulos A y B para luego calcular x2 y y2 de punto a distancia step
+			double ang_c = PI/2;
+			double ang_a = asin((vec_dir.at(0) * sin(ang_c))/distance);
+			double ang_b = asin((vec_dir.at(1) * sin(ang_c))/distance);
+			
+			vec_res.at(2) = vec_dir.at(2);
+			vec_res.at(0) = (sizeStep * sin(ang_a)/ sin(ang_c));
+			vec_res.at(1) = (sizeStep * sin(ang_b)/ sin(ang_c));
+		}
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 	}
 	
 	bool checkCollision(std::vector<double> &point){
 		bool res = false;
+<<<<<<< HEAD
 		/*std::vector<std::string> aux = planning_scene_interface->getKnownObjectNamesInROI(point.at(0) - 0.5, point.at(1) - 0.5, 0.0, point.at(0) + 0.5, point.at(1) + 0.5, 2.0, false);
 		if(aux.size() > 0 ){
 			res = true;
@@ -844,12 +1079,19 @@ class Planner{
 				res = true;
 			}
 		}
+=======
+		std::vector<std::string> aux = planning_scene_interface->getKnownObjectNamesInROI(point.at(0) - 0.5, point.at(1) - 0.5, 0.0, point.at(0) + 0.5, point.at(1) + 0.5, 1.0, false);
+		if(aux.size() > 0 ){
+			res = true;
+		} 	
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 		return res;
 	} 
 	
 	void getRandomNode(std::vector<ltlplanner::ROI_node> &nodes, ltlplanner::ROI_node &actNode){
 		int place = rand() % nodes.size();         // v1 in the range 0 to 99
 		actNode = nodes.at(place);
+<<<<<<< HEAD
 		//std::cout << "PLANNER: random place: " << place << std::endl;
 	}
 	
@@ -879,6 +1121,8 @@ class Planner{
    		vector_.at(i) = raux;
    		i++;
 		}
+=======
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 	}
 	
 	bool getTrajectoryRRT(std::vector<ltlplanner::position> &result_, ltlplanner::ROI_graph &tree){
@@ -890,6 +1134,7 @@ class Planner{
 				ltlplanner::ROI_node aux = *it;
 				result_.push_back(aux.point);
 			}
+<<<<<<< HEAD
 		}
 		return res;
 	}
@@ -925,6 +1170,12 @@ class Planner{
 		return place;
 	}
 	
+=======
+		}
+		return res;
+	}
+	
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 	int getRegionofPoint(std::vector<double> &values){
 		int res;
 		ltlplanner::RM_getRegionwithPoint getRegion_msg;
@@ -934,6 +1185,7 @@ class Planner{
   	}
 		return res;
 	}
+<<<<<<< HEAD
 	
 	void addCollisionObjects(std::vector<ltlplanner::object> &collisions){
 		ltlplanner::object aux1;
@@ -1024,6 +1276,8 @@ class Planner{
 		aux11.y_max = 3.2;
 		collisions.push_back(aux11);
 	}
+=======
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 };
 
 int main(int argc, char** argv)

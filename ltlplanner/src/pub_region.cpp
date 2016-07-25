@@ -34,12 +34,21 @@ class Region{
 			area_0.DOF_mg = 3;
 	
 			ltlplanner::limit lim_0_1;
+<<<<<<< HEAD
 			lim_0_1.min = -4.5;
 			lim_0_1.max = 4.5;
 	
 			ltlplanner::limit lim_0_2;
 			lim_0_2.min = -0.4;
 			lim_0_2.max = 1.8;
+=======
+			lim_0_1.min = -0.5;
+			lim_0_1.max = 0.5;
+	
+			ltlplanner::limit lim_0_2;
+			lim_0_2.min = -0.5;
+			lim_0_2.max = 0.5;
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 	
 			ltlplanner::limit lim_0_3;
 			lim_0_3.min = -3.14;
@@ -50,10 +59,13 @@ class Region{
 			area_0.limits.push_back(lim_0_3);
 		
 			area_0.idneighbours.push_back(1);
+<<<<<<< HEAD
 			area_0.idneighbours.push_back(2);
 			area_0.idneighbours.push_back(3);
 			area_0.idneighbours.push_back(4);
 			area_0.idneighbours.push_back(5);
+=======
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 			
 			ltlplanner::region area_1;
 			area_1.name_r = "P1";
@@ -67,8 +79,13 @@ class Region{
 			lim_1_1.min = -4.5;
 	
 			ltlplanner::limit lim_1_2;
+<<<<<<< HEAD
 			lim_1_2.min = -4.0;
 			lim_1_2.max = -2.0;
+=======
+			lim_1_2.min = 0.9;
+			lim_1_2.max = 1.1;
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 	
 			ltlplanner::limit lim_1_3;
 			lim_1_3.min = -3.14;
@@ -79,6 +96,10 @@ class Region{
 			area_1.limits.push_back(lim_1_3);
 	
 			area_1.idneighbours.push_back(0);
+<<<<<<< HEAD
+=======
+			area_1.idneighbours.push_back(2);
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 			
 			ltlplanner::region area_2;
 			area_2.name_r = "P2";
@@ -103,6 +124,7 @@ class Region{
 			area_2.limits.push_back(lim_2_2);
 			area_2.limits.push_back(lim_2_3);
 			
+<<<<<<< HEAD
 			area_2.idneighbours.push_back(0);
 			
 			ltlplanner::region area_3;
@@ -179,6 +201,9 @@ class Region{
 			area_5.limits.push_back(lim_5_3);
 			
 			area_5.idneighbours.push_back(0);
+=======
+			area_2.idneighbours.push_back(1);
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 			
 			regions_.push_back(area_0);
 			regions_.push_back(area_1);
@@ -193,12 +218,20 @@ class Region{
 			while(ros::ok()){
 				sleep(1.0);
 				for(std::vector<ltlplanner::region>::const_iterator it = regions_.begin(); it != regions_.end(); ++it){
+<<<<<<< HEAD
 					sleep(0.5);
+=======
+					sleep(1.0);
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 					ltlplanner::region aux = *it;
 					ltlplanner::region_msg region_msg;
 					region_msg.id = index;
 					region_msg.region = aux;
+<<<<<<< HEAD
 					region_msg.totalRegions = 6;
+=======
+					region_msg.totalRegions = 3;
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 					pub_region.publish(region_msg);
 					index++;
 				}

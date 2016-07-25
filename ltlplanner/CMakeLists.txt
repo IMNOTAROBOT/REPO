@@ -49,7 +49,10 @@ add_message_files(
   ROI_edge.msg
   ROI_graph.msg
   ROI_node.msg
+<<<<<<< HEAD
   object.msg
+=======
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 )
 
 add_service_files(
@@ -134,11 +137,14 @@ target_link_libraries(planner_manager ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(planner_manager ltlplanner_generate_messages_cpp)
 install(TARGETS planner_manager DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+<<<<<<< HEAD
 add_executable(planner_manager_client src/planner_manager_client.cpp)
 target_link_libraries(planner_manager_client ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(planner_manager_client ltlplanner_generate_messages_cpp)
 install(TARGETS planner_manager_client DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+=======
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 add_executable(highplanner_srv src/highplanner_srv.cpp)
 target_link_libraries(highplanner_srv ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(highplanner_srv ${ltlplanner_EXPORTED_TARGETS})

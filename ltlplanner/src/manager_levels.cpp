@@ -16,7 +16,11 @@
 #include <vector>
 #include <sstream>
 #include <stdlib.h>
+<<<<<<< HEAD
 #include <time.h>
+=======
+
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 #include "ltlplanner/automaton_msg.h"
 #include "ltlplanner/region_msg.h"
 #include "ltlplanner/goal_msg.h"
@@ -52,7 +56,11 @@ class Manager{
     	index = 0;
     	planning = false;
     	while(!ac_->waitForServer(ros::Duration(5.0))){
+<<<<<<< HEAD
     		ROS_INFO("MANAGER : Waiting for 2LP action server to come up");
+=======
+    		ROS_INFO("HIGHPLANNER : Waiting for lowplanner action server to come up");
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   		}
   	}
 
@@ -154,21 +162,33 @@ class Manager{
 		void listeningRegions(const ltlplanner::region_msgPtr& msg){
   		bool res = addRegion(msg->region);
   		if(res){
+<<<<<<< HEAD
   			//std::cout << "MANAGER: Se agrego region: " << msg->region.id << std::endl;
+=======
+  			std::cout << "Se agrego region: " << msg->region.id << std::endl;
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   		}
 		}
 
 		void listeningAutomatas(const ltlplanner::automaton_msgPtr& msg){
   		bool res = addAutomata(msg->automata);
   		if(res){
+<<<<<<< HEAD
   			//std::cout << "MANAGER: Se agrego automata: " << msg->automata.id << std::endl;
+=======
+  			std::cout << "Se agrego automata: " << msg->automata.id << std::endl;
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   		}
 		}
 		
 		void listeningGoals(const ltlplanner::goal_msgPtr& msg){
 			if(actGoal.id != msg->goal.id){
 				setGoal(msg->goal);
+<<<<<<< HEAD
   			//std::cout << "MANAGER: Se agrego objetivo: " << msg->goal.id << " " << msg->goal.goal << std::endl;	
+=======
+  			std::cout << "Se agrego objetivo: " << msg->goal.id << " " << msg->goal.goal << std::endl;	
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
   			planning = false;	
 			}
 			if(!planning){
@@ -184,14 +204,21 @@ class Manager{
 			ltlplanner::plan_msg plan_msg;
 			plan_msg.id = index;
 			plan_msg.plan = plan_;
+<<<<<<< HEAD
 			//std::cout << "MANAGER: Se publico plan: " << plan_.id << std::endl;
+=======
+			std::cout << "Se publico plan: " << plan_.id << std::endl;
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 			pub_plan.publish(plan_msg);
 			index++;	
 		}
 		
 		bool executePlan(){
 			bool res = false;
+<<<<<<< HEAD
 			double secs_s_tot =ros::Time::now().toSec();
+=======
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 			for(std::vector<ltlplanner::task>::const_iterator it = plan_.tasks.begin(); it != plan_.tasks.end(); ++it){
 				ltlplanner::task aux = *it;
 				
@@ -199,6 +226,7 @@ class Manager{
  	 			
  	 			goal.id = aux.id;
  	 			goal.group_name = aux.name_mg;
+<<<<<<< HEAD
  	 				
  	 			goal.region_id = aux.trans_alphabet;
  	 			
@@ -232,6 +260,30 @@ class Manager{
 			double secs_s =ros::Time::now().toSec();
 			if(actGoal.id != -1 && isinAutomatas(actGoal.id_automata)){
 				std::cout << "MANAGER: Planeando..." << std::endl;
+=======
+ 	 			goal.region_id = aux.trans_alphabet;
+ 	 		
+	  		ac_->sendGoal(goal);
+				
+				ac_->waitForResult();
+  			
+  			if(ac_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
+    			std::cout << "MANAGER: Se complio: " << aux.id << std::endl;
+    			res = true;
+    		}else{
+    			ROS_INFO("MANAGER : Mal");
+    			res = false;
+  			}
+				
+			}
+			return res;
+		
+		}
+		//I. Metodo raiz para crear plan segun un objetivo
+		void setPlan(){
+			if(actGoal.id != -1 && isinAutomatas(actGoal.id_automata)){
+				std::cout << "Planear" << std::endl;
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 				ltlplanner::automaton auto_ = getAutomata(actGoal.id_automata);
 				std::vector<ltlplanner::taskPtr> tasks;
 				bool res = lookforpath(auto_, tasks);
@@ -245,9 +297,12 @@ class Manager{
 					planning = true;
 				}
 			}
+<<<<<<< HEAD
 			double secs_e =ros::Time::now().toSec(); 
 			double time_total = secs_e - secs_s;
 			std::cout << "MANAGER: Tiempo (s) para PLANEAR tareas = " << time_total << std::endl;
+=======
+>>>>>>> 5f79198d86948135cef3a03bcd2814573960aa96
 		}
 		
 		//II. Metodo Dikjstra para generar una trayectoria corta y valida dentro del automata.
